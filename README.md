@@ -12,35 +12,31 @@
 
 ```sql
 SELECT
-    COUNT(*)
-FROM public.tripdata
+    CASE
+        WHEN trip_distance <= 1.0 THEN '1m>' 
+        WHEN trip_distance > 1.0 AND trip_distance <= 3.0 THEN '1-3m'
+        WHEN trip_distance > 3.0 AND trip_distance <= 7.0 THEN '3-7m'
+        WHEN trip_distance > 7.0 AND trip_distance <= 10.0 THEN '7-10m'
+        WHEN trip_distance > 10.0 THEN '10m<'
+        ELSE 'empty_data'
+    END AS miles_group
+    ,COUNT(*) AS drives_cnt
+FROM public.green_taxi
 WHERE
     lpep_pickup_datetime::DATE BETWEEN '2019-10-01' AND '2019-10-31'
     AND lpep_dropoff_datetime::DATE BETWEEN '2019-10-01' AND '2019-10-31'
-    AND trip_distance <= 1.0
--- AND trip_distance > 1.0 AND trip_distance <= 3.0
--- AND trip_distance > 3.0 AND trip_distance <= 7.0
--- AND trip_distance > 7.0 AND trip_distance <= 10.0
--- AND trip_distance > 10.0
+GROUP BY miles_group
+ORDER BY miles_group
 ```
-
-Uncomment the relevant distance range as needed.
-
----
 
 ## Question 4: Longest Trip for Each Day
 
 ```sql
-WITH grouped_data AS (
-    SELECT
-        lpep_pickup_datetime::DATE, MAX(trip_distance) AS max_trip_distance
-    FROM public.tripdata
-    WHERE lpep_pickup_datetime::DATE IN ('2019-10-11', '2019-10-24', '2019-10-26', '2019-10-31')
-    GROUP BY lpep_pickup_datetime::DATE
-)
 SELECT lpep_pickup_datetime::DATE
-FROM grouped_data
-ORDER BY max_trip_distance DESC
+FROM public.green_taxi
+WHERE lpep_pickup_datetime::DATE IN ('2019-10-11', '2019-10-24', '2019-10-26', '2019-10-31')
+GROUP BY lpep_pickup_datetime::DATE
+ORDER BY MAX(trip_distance) DESC
 LIMIT 1;
 ```
 
@@ -50,8 +46,8 @@ LIMIT 1;
 
 ```sql
 SELECT tzl."Zone", SUM(td.total_amount) AS total_amount_sum
-FROM public.tripdata AS td
-INNER JOIN public.taxi_zone_lookup AS tzl
+FROM public.green_taxi AS td
+INNER JOIN public.zones AS tzl
 ON td."PULocationID" = tzl."LocationID"
 WHERE td.lpep_pickup_datetime::DATE = '2019-10-18'
 GROUP BY tzl."Zone"
