@@ -12,6 +12,7 @@
 
 ## Question 3. Trip Segmentation Count
 
+'''sql
 SELECT
     CASE
         WHEN trip_distance <= 1.0 THEN '1m>' 
@@ -28,7 +29,7 @@ WHERE
     AND lpep_dropoff_datetime::DATE BETWEEN '2019-10-01' AND '2019-10-31'
 GROUP BY miles_group
 ORDER BY miles_group
-
+'''
 ## Question 4. Longest trip for each day
 
 SELECT lpep_pickup_datetime::DATE
